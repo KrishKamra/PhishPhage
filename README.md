@@ -1,7 +1,5 @@
 # 🛡️ PhishGuard: AI-Powered Phishing Detection
 
-![UI Preview Placeholder](image.png)
-
 ## 🚀 Overview
 PhishGuard is an end-to-end machine learning application designed to instantly detect and analyze phishing emails using Natural Language Processing (NLP). 
 
