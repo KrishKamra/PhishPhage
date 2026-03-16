@@ -1,0 +1,37 @@
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Python & Backend
+.venv/
+__pycache__/
+*.pyc
+.env
+*.pkl
+*.h5
+
+# Node & Frontend
+frontend/node_modules/
+frontend/dist/
+.npm
+
+# Jupyter & OS
+.ipynb_checkpoints/
+.DS_Store
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Local IDE settings
+.vscode/
+
+# Project-specific ignored image
+image.png
