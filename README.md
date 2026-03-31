@@ -68,7 +68,7 @@ uvicorn main:app --reload
 
 ```
 
-*The API will run on `http://127.0.0.1:8000*`
+The API will run on `http://127.0.0.1:8000*`
 
 ### 2. Start the Frontend (UI Dashboard)
 
@@ -81,7 +81,7 @@ npm run dev
 
 ```
 
-*The UI will run on `http://localhost:5173*`
+*The UI will run on `http://localhost:5173`
 
 ## 👨‍💻 Author
 
