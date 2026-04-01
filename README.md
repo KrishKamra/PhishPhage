@@ -81,7 +81,7 @@ npm run dev
 
 ```
 
-*The UI will run on `http://localhost:5173`
+The UI will run on `http://localhost:5173`
 
 ## 👨‍💻 Author
 
