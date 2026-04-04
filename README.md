@@ -1,88 +1,83 @@
-# 🛡️ PhishGuard: AI-Powered Phishing Detection
+# 🛡️ PhishGuard: AI-Powered Phishing Detection & Forensic Auditor
 
 ## 🚀 Overview
 PhishGuard is an end-to-end machine learning application designed to instantly detect and analyze phishing emails using Natural Language Processing (NLP). 
 
-More than just a classification model, PhishGuard bridges the gap between complex machine learning algorithms and actionable security insights. It provides a production-ready, intuitive Threat Intelligence Dashboard that explains the *why* behind the AI's decisions.
+Bridging the gap between complex black-box algorithms and actionable security insights, PhishGuard provides a production-ready **Threat Intelligence Dashboard**. It doesn't just label an email; it explains the *linguistic triggers* and *social engineering tactics* that led to the AI's decision.
+
+## 📊 Model Performance (v1.1.0)
+Based on the latest **Random Forest** ensemble evaluation in our [EDA Notebook](./notebooks/PhishGuard_EDA.ipynb):
+
+| Metric | Score | Business Impact |
+| :--- | :--- | :--- |
+| **Accuracy** | **98%** | Highly reliable overall classification. |
+| **Ham Precision** | **100%** | Zero false alarms for legitimate business mail. |
+| **Spam Recall** | **99%** | Catching nearly all threats before they reach the user. |
+| **F1-Score (Spam)** | **0.96** | Robust performance on imbalanced security data. |
 
 ## ✨ Key Features
-* **Real-Time Inference:** A lightning-fast FastAPI backend serving ML predictions in milliseconds.
-* **Threat Intelligence Dashboard:** A React-based interface that breaks down the threat analysis:
-  * **Confidence Scoring:** Probability metric of the email being a phishing attempt.
-  * **Urgency Leveling:** Detects manipulative, time-sensitive social engineering tactics.
-  * **Trigger Word Extraction:** Highlights specific suspicious vocabulary used by the sender.
-  * **Link Analysis:** Parses and evaluates embedded URLs, flagging raw IPs and lookalike domains.
-* **Data-Driven Insights:** Includes a comprehensive Exploratory Data Analysis (EDA) notebook detailing the statistical distribution of phishing vectors, class balancing, and vocabulary overlap.
+* **Linguistic Trigger Mapping:** Real-time highlighting of suspicious vocabulary (e.g., *urgent*, *suspended*, *verify*) directly in the UI.
+* **Smart Security Threshold:** Requires a 5-word "Forensic Minimum" to ensure high-confidence analysis.
+* **Urgency & Intent Detection:** Categorizes social engineering tactics into High, Medium, or Low priority threats.
+* **Forensic Export:** One-click "Export Report" feature to save AI analysis for IT security ticketing.
+* **Human-in-the-Loop:** Integrated "Report Incorrect Analysis" button to simulate a live ML retraining feedback loop.
+* **Link Parser:** Evaluates embedded URLs for lookalike domains and suspicious structures.
 
 ## 🛠️ Tech Stack
 **Frontend:**
-* React.js (Vite)
-* Tailwind CSS (v4)
-* Lucide React (Icons)
-* Glassmorphism UI Design
+* **React.js (Vite)** with TypeScript
+* **Tailwind CSS (v4)** for high-performance styling
+* **Lucide React** for forensic iconography
+* **Glassmorphism UI** for a modern, dark-mode security aesthetic
 
 **Backend & Machine Learning:**
-* Python
-* FastAPI & Uvicorn
-* Scikit-learn (ML Pipeline)
-* NLTK (Natural Language Toolkit)
-* Pandas & Seaborn (Data Analysis & Visualization)
+* **Python 3.11+**
+* **FastAPI & Uvicorn** for high-speed asynchronous inference
+* **Scikit-learn** (Random Forest Classifier & TF-IDF Vectorization)
+* **NLTK** (Natural Language Toolkit) for text preprocessing
+* **Pandas & Seaborn** for deep statistical EDA
 
 ## 📂 Project Structure
 ```text
 PhishGuard/
-├── backend/                  # FastAPI server and ML model artifacts
-│   ├── main.py               # API endpoints and CORS routing
-│   ├── requirements.txt      # Python dependencies
-│   └── (model files)         # .pkl files for the classifier and vectorizer
-├── frontend/                 # React single-page application
+├── backend/                # FastAPI server and ML model artifacts
+│   ├── main.py             # API endpoints and forensic logic
+│   ├── requirements.txt    # Python dependencies
+│   └── artifacts/          # Saved .pkl files (Classifier & Vectorizer)
+├── frontend/               # React single-page application
 │   ├── src/
-│   │   ├── App.tsx           # Main UI dashboard and API fetch logic
-│   │   ├── index.css         # Tailwind configurations
-│   │   └── main.tsx          # React DOM entry point
-│   └── package.json          # Node dependencies
-└── notebooks/                # Data science environment
-    └── PhishGuard_EDA.ipynb  # Exploratory Data Analysis and NLP visualizations
-
+│   │   ├── App.tsx         # Dashboard UI, Highlighter, and API logic
+│   │   └── main.tsx        # React entry point
+│   └── package.json        # Node dependencies
+└── notebooks/              # Data Science research
+    └── PhishGuard_EDA.ipynb # Visual proof-of-concept and metrics
 ```
 
-## 💻 How to Run Locally
+## 💻 Installation & Setup
 
-### 1. Start the Backend (API & ML Engine)
-
-Open a terminal, navigate to the `backend` directory, and start the Python environment:
-
+### 1. Backend Setup
+Navigate to the `backend` directory and initialize your environment:
 ```bash
 cd backend
 python -m venv .venv
 
-# Activate the virtual environment
-# On Windows:
+# Activate (Windows)
 .venv\Scripts\activate
-# On Mac/Linux:
-source .venv/bin/activate
 
-# Install dependencies and run the server
+# Install & Run
 pip install -r requirements.txt
 uvicorn main:app --reload
-
 ```
+*API runs at: `http://127.0.0.1:8000`*
 
-The API will run on `http://127.0.0.1:8000*`
-
-### 2. Start the Frontend (UI Dashboard)
-
-Open a **second** terminal, navigate to the `frontend` directory, and start the React app:
-
+### 2. Frontend Setup
+Open a new terminal in the `frontend` directory:
 ```bash
 cd frontend
 npm install
 npm run dev
-
 ```
-
-The UI will run on `http://localhost:5173`
+*UI runs at: `http://localhost:5173`*
 
 ## 👨‍💻 Author
-
 **Krish Kamra**
