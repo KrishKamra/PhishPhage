@@ -132,7 +132,7 @@ npm run dev
 
 ## 🗺️ Roadmap
 
-  - [✅] **v1.1.0**: Rebranding, Joblib optimization, and Forensic UI rollout.
+  - [x] **v1.1.0**: Rebranding, Joblib optimization, and Forensic UI rollout.
   - [ ] **v1.2.0**: Dockerization & Multi-stage container builds for easy deployment.
   - [ ] **v1.5.0**: Browser Sentinel (Chrome Extension) for real-time Gmail auditing.
   - [ ] **v2.0.0**: LLM Integration (Small-parameter models like Phi-3) for nuance detection.
