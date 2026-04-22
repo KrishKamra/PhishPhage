@@ -1,9 +1,9 @@
-# 🛡️ PhishGuard: AI-Powered Phishing Detection & Forensic Auditor
+# 🛡️PhishPhage: AI-Powered Phishing Detection & Forensic Auditor
 
 ## 🚀 Overview
-PhishGuard is an end-to-end machine learning application designed to instantly detect and analyze phishing emails using Natural Language Processing (NLP). 
+PhishPhage is an end-to-end machine learning application designed to instantly detect and analyze phishing emails using Natural Language Processing (NLP). 
 
-Bridging the gap between complex black-box algorithms and actionable security insights, PhishGuard provides a production-ready **Threat Intelligence Dashboard**. It doesn't just label an email; it explains the *linguistic triggers* and *social engineering tactics* that led to the AI's decision.
+Bridging the gap between complex black-box algorithms and actionable security insights, PhishPhage provides a production-ready **Threat Intelligence Dashboard**. It doesn't just label an email; it explains the *linguistic triggers* and *social engineering tactics* that led to the AI's decision.
 
 ## 📊 Model Performance (v1.1.0)
 Based on the latest **Random Forest** ensemble evaluation in our [EDA Notebook](./notebooks/PhishGuard_EDA.ipynb):
@@ -39,7 +39,7 @@ Based on the latest **Random Forest** ensemble evaluation in our [EDA Notebook](
 
 ## 📂 Project Structure
 ```text
-PhishGuard/
+PhishPhage/
 ├── backend/                # FastAPI server and ML model artifacts
 │   ├── main.py             # API endpoints and forensic logic
 │   ├── requirements.txt    # Python dependencies
@@ -50,7 +50,7 @@ PhishGuard/
 │   │   └── main.tsx        # React entry point
 │   └── package.json        # Node dependencies
 └── notebooks/              # Data Science research
-    └── PhishGuard_EDA.ipynb # Visual proof-of-concept and metrics
+    └── PhishPhage_EDA.ipynb # Visual proof-of-concept and metrics
 ```
 
 ## 💻 Installation & Setup

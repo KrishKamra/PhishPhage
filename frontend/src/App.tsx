@@ -99,12 +99,12 @@ function App() {
 
   const downloadReport = () => {
     if (!results) return;
-    const report = `PHISHGUARD ANALYSIS REPORT\n--------------------------\nStatus: ${results.isPhishing ? 'PHISHING DETECTED' : 'LIKELY SAFE'}\nConfidence: ${results.confidence}%\nUrgency: ${results.urgencyLevel.toUpperCase()}\nTrigger Words Found: ${results.triggerWords.join(', ') || 'None'}\nExplanation: ${results.explanation}`;
+    const report = `PHISHPHAGE ANALYSIS REPORT\n--------------------------\nStatus: ${results.isPhishing ? 'PHISHING DETECTED' : 'LIKELY SAFE'}\nConfidence: ${results.confidence}%\nUrgency: ${results.urgencyLevel.toUpperCase()}\nTrigger Words Found: ${results.triggerWords.join(', ') || 'None'}\nExplanation: ${results.explanation}`;
     const blob = new Blob([report], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `PhishGuard_Report_${new Date().getTime()}.txt`;
+    link.download = `PhishPhage_Report_${new Date().getTime()}.txt`;
     link.click();
   };
 
@@ -122,7 +122,7 @@ function App() {
           <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Shield className="w-7 h-7 text-blue-400" />
-              <h1 className="text-2xl font-bold tracking-tight">PhishGuard</h1>
+              <h1 className="text-2xl font-bold tracking-tight">PhishPhage</h1>
             </div>
             <span className="text-xs bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full border border-blue-500/30">v1.1.0 (Feedback Enabled)</span>
           </div>
