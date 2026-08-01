@@ -155,7 +155,7 @@ graph TD
 ```
 
 > [!TIP]
-> For an in-depth architectural breakdown including internal data schemas, memory footprints, and network sequence flow, refer to the [Architecture Guide](https://www.google.com/search?q=./docs/architecture.md).
+> For an in-depth architectural breakdown including internal data schemas, memory footprints, and network sequence flow, refer to the [Architecture Guide](./docs/architecture.md).
 
 ---
 
@@ -190,38 +190,6 @@ $$\begin{pmatrix} \text{True Negative (Legitimate): } 9,210 & \text{False Positi
 
 > [!WARNING]
 > Model performance is highly dependent on preserving header metadata and un-sanitized link text during preprocessing. Avoid stripping raw URLs prior to passing strings to `/predict`.
-
----
-
-## 🖥️ Operational SOC Dashboard
-
-PhishPhage features a modern SOC workspace built with **Tailwind CSS**, **Framer Motion**, and **Lucide React Icons**.
-
-```text
-+-----------------------------------------------------------------------------------+
-|  PHISHPHAGE v1.1.0 SOC Edition             [API Status: ONLINE] [Engine: RF-TFIDF]|
-+-----------------------------------------------------------------------------------+
-|                                                                                   |
-|  [ 📥 Primary Email Inspector Payload Box ]                                        |
-|  +-----------------------------------------------------------------------------+  |
-|  | Subject: Immediate Security Verification Required                           |  |
-|  | Your account has been flagged. Click [http://login.bank-verify.com](http://login.bank-verify.com) immediately |  |
-|  +-----------------------------------------------------------------------------+  |
-|  [ Analyze Communications Button ]                                                |
-|                                                                                   |
-|  -------------------------------------------------------------------------------  |
-|                                                                                   |
-|  [ 🚨 Threat Gauge ]             [ 🔍 Forensic Breakdown Tabs ]                   |
-|  +---------------------------+   +---------------------------------------------+  |
-|  |      PHISHING DETECTED    |   | Urgency Triggers: ["immediate", "verify"]   |  |
-|  |      Confidence: 98.50%   |   | Links Flagged: 1 / 1 Suspicious Domain      |  |
-|  |      Priority: HIGH       |   | XAI Rationale: Social engineering urgency...|  |
-|  +---------------------------+   +---------------------------------------------+  |
-|                                                                                   |
-|  [ 📄 Export PDF Report ]                    [ 🚩 Flag False Positive Feedback ]  |
-+-----------------------------------------------------------------------------------+
-
-```
 
 ---
 
