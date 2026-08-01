@@ -1,0 +1,35 @@
+# VCS & Git
+.git
+.gitignore
+
+# Environment & Secret Files
+.env
+.env.*
+*.env
+
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.nox/
+.tox/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDE & OS Artifacts
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs & Temporary Files
+*.log
+tmp/

@@ -1,0 +1,42 @@
+{
+    "model_version": "1.1.0",
+    "trained_at": "2026-08-01T19:19:56.188511+00:00",
+    "accuracy": 0.9797101449275363,
+    "best_params": {
+        "tfidf__ngram_range": [
+            1,
+            1
+        ],
+        "tfidf__max_features": 7000,
+        "clf__n_estimators": 200,
+        "clf__min_samples_split": 2,
+        "clf__max_depth": null
+    },
+    "metrics": {
+        "Safe": {
+            "precision": 0.9972144846796658,
+            "recall": 0.9741496598639455,
+            "f1-score": 0.9855471438403304,
+            "support": 735.0
+        },
+        "Phishing": {
+            "precision": 0.9400630914826499,
+            "recall": 0.9933333333333333,
+            "f1-score": 0.965964343598055,
+            "support": 300.0
+        },
+        "accuracy": 0.9797101449275363,
+        "macro avg": {
+            "precision": 0.9686387880811578,
+            "recall": 0.9837414965986394,
+            "f1-score": 0.9757557437191927,
+            "support": 1035.0
+        },
+        "weighted avg": {
+            "precision": 0.9806488634631394,
+            "recall": 0.9797101449275363,
+            "f1-score": 0.9798709698570621,
+            "support": 1035.0
+        }
+    }
+}

@@ -8,6 +8,7 @@
 *.njsproj
 *.sln
 *.sw?
+*.ruff_cache
 
 # Python & Backend
 .venv/
