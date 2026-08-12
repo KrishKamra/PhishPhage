@@ -30,7 +30,7 @@
 [![Python: 3.11](https://img.shields.io/badge/Python-3.11-3776AB.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![Framework: FastAPI](https://img.shields.io/badge/Framework-FastAPI-009688.svg?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![ML Engine: Random Forest + TF-IDF](https://img.shields.io/badge/ML%20Engine-Random%20Forest%20%2B%20TF--IDF-F7931E.svg?style=flat-square&logo=scikitlearn&logoColor=white)](https://scikit-learn.org/)
-[![Ecosystem: React 18](https://img.shields.io/badge/Ecosystem-React%2018-61DAFB.svg?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
+[![Ecosystem: React 19](https://img.shields.io/badge/Ecosystem-React%2019-61DAFB.svg?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
 [![Language: TypeScript 5.7](https://img.shields.io/badge/Language-TypeScript%205.7-3178C6.svg?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Maintenance: Actively Developed](https://img.shields.io/badge/Maintenance-Actively%20Developed-10B981.svg?style=flat-square)](https://github.com/KrishKamra/PhishPhage)
 
@@ -67,25 +67,43 @@ Evaluated across a benchmark dataset merging standardized email threat corpora (
 
 ---
 
-## 🖥️ Operational SOC Dashboard
+## 🖥️ Operational SOC Workspace
 
-PhishPhage features a modern, dark-mode SOC workspace designed for high-density forensic analysis. The dashboard incorporates real-time health telemetry, interactive confidence gauges, extracted linguistic indicators, and instant vector PDF report exporting.
+The frontend is a **desktop-first 2.5D operator console**, not a marketing landing page. The payload inspector stays under the analyst's hands; the verdict rail stays in peripheral vision so a HIGH THREAT never lands below the fold.
+
+Atmosphere is CSS (perspective grid, verdict-tinted glows). A lazy WebGL threat orb sits *behind* the gauge only — it never wraps the page, pauses when the tab is hidden, and falls back to the SVG meter when WebGL is missing or `prefers-reduced-motion` is on.
 
 <div align="center">
 
-![PhishPhage SOC Operational Dashboard](./dashboard.png)
+![PhishPhage threat verdict — MFA reset vector](./dashboard.png)
+
+*Threat rail after the built-in **MFA reset** sandbox vector: 83% phishing probability, highlighted urgency tokens, and an HTTP+IP lure.*
+
+</div>
+
+<br>
+
+<div align="center">
+
+| Idle workspace | Safe verdict |
+| :---: | :---: |
+| ![Empty two-pane SOC workspace](./docs/images/workspace-idle.png) | ![Legitimate sprint-sync verdict](./docs/images/workspace-safe.png) |
+| *Awaiting payload — paste, drop a `.eml` / `.txt`, or load a sample vector.* | *Sprint-sync sample: Low urgency, clean HTTPS link, SAFE MODE rationale.* |
 
 </div>
 
 <hr>
 
-### Key Dashboard Telemetry Panels
+### Key Workspace Surfaces
 
-* **📥 Interactive Payload Inspector:** Monospaced text canvas with automated length truncation and payload sanitization controls.
-* **🚨 Real-Time Threat Gauge:** Visual risk probability score with dynamic status indicators (*EMERALD: Safe*, *AMBER: Suspicious*, *ROSE: Critical Phishing Attack*).
-* **🔍 Forensic Breakdown Panel:** Dynamic key-value view detailing extracted urgency triggers, suspicious embedded links, and domain mismatch indicators.
-* **🧠 Explainable AI (XAI) Rationale Box:** Human-readable text rationale providing instant contextual reasoning for tier-1 SOC triage.
-* **📄 Vector Report Exporter:** Direct client-side generation of executive threat intelligence reports in dark-mode vector PDF format.
+* **📥 Payload Inspector:** Monospaced editor with scroll-synced trigger/URL highlights, local From/To/Subject chips, `.eml` / `.txt` drag-and-drop, and `Ctrl` / `⌘` + `Enter` to run.
+* **🧪 Sandbox Vectors:** One-click MFA, BEC, parcel-lure, password-expire, sprint, HR, and invoice payloads (reserved `*.example` domains and RFC 5737 IPs) plus droppable files in `frontend/public/samples/`.
+* **🚨 Threat Gauge:** Labeled *phishing probability* with ticks at 0 / 50 / 75 / 90. Emerald = safe, rose = high threat. Optional lazy `ThreatOrb` accent.
+* **📊 Verdict Rail:** Urgency, trigger count, and link counts stay visible; forensic sections (triggers, links, XAI) stack on desktop and collapse to tabs on small screens.
+* **🔗 Link Auditor:** Copyable URL rows; flags unencrypted HTTP and raw-IP hosts.
+* **🧠 XAI Rationale:** Deterministic, human-readable reason for the verdict.
+* **📄 Artifact Export:** Client-side dark-mode vector PDF (`jsPDF`) and Markdown ticket copy for Jira / ServiceNow.
+* **🔄 Model Feedback:** False-positive and missed-threat flags queued in `sessionStorage` for human-in-the-loop review.
 
 ---
 
@@ -116,9 +134,9 @@ PhishPhage features a modern, dark-mode SOC workspace designed for high-density 
 
 ```mermaid
 graph TD
-    subgraph Client ["Client Layer (React 18 + Vite + TypeScript)"]
-        UI["EmailInspector Component"]
-        Gauge["ThreatGauge & XAI Breakdown"]
+    subgraph Client ["Client Layer (React 19 + Vite + TypeScript)"]
+        UI["EmailInspector + Sample Vectors"]
+        Rail["ResultsRail (Gauge · Forensics · XAI)"]
         Export["ReportExporter (jsPDF Vector Engine)"]
     end
 
@@ -141,14 +159,14 @@ graph TD
     TFIDF --> RFModel
     URLExtract --> XAIEngine
     RFModel -->|Raw Probabilities| XAIEngine
-    XAIEngine -->|2. PredictResponse JSON| Gauge
-    Gauge -->|3. Generate PDF| Export
+    XAIEngine -->|2. PredictResponse JSON| Rail
+    Rail -->|3. Generate PDF / Markdown| Export
 
     classDef client fill:#0f172a,stroke:#38bdf8,stroke-width:2px,color:#f8fafc;
     classDef backend fill:#020617,stroke:#10b981,stroke-width:2px,color:#f8fafc;
     classDef pipe fill:#1e293b,stroke:#f59e0b,stroke-width:1px,color:#f8fafc;
     
-    class UI,Gauge,Export client;
+    class UI,Rail,Export client;
     class Router backend;
     class Sanitizer,URLExtract,TFIDF,RFModel,XAIEngine pipe;
 
@@ -162,7 +180,9 @@ graph TD
 ## ✨ Key Features
 
 * 🧠 **Explainable AI Engine (XAI):** Unpacks black-box ML decisions into plain-English reasoning highlighting urgency keywords, structural discrepancies, and threat levels.
-* 📊 **Interactive Threat Gauge:** Dynamic confidence visualizer with color-coded risk vectors (Emerald = Safe, Amber = Suspicious, Rose = Critical Phishing Attack).
+* 🖥️ **2.5D Operator Workspace:** Two-pane SOC console — inspector left, persistent verdict rail right — with CSS atmosphere and an optional lazy WebGL orb.
+* ⌨️ **Analyst Shortcuts:** `Ctrl` / `⌘` + `Enter` to analyze, payload drop targets, and click-to-find trigger chips that jump in the editor.
+* 📊 **Interactive Threat Gauge:** Phishing-probability meter with threshold ticks and color-coded risk vectors (Emerald = Safe, Amber = Suspicious, Rose = Critical Phishing Attack).
 * 🔗 **Hyperlink & Domain Auditor:** Automatically strips HTML payload tags, inspects raw URL strings, and flags suspicious TLDs, IP-based URLs, and SSL discrepancies.
 * 📝 **Trigger Keyword Identification:** Extracts social engineering keywords (*e.g., "account suspended", "action required", "immediate verification"*) using regex-backed linguistic rules.
 * 📄 **Vector PDF Exporter:** Uses pure mathematical vector layouts (`jsPDF`) to build executive threat reports with dark-mode styling without canvas blur or scaling issues.
@@ -251,24 +271,38 @@ PhishPhage/
 │   ├── Dockerfile
 │   └── .dockerignore
 ├── docs/
+│   ├── images/
+│   │   ├── workspace-idle.png
+│   │   ├── workspace-safe.png
+│   │   └── workspace-threat.png
 │   ├── api-spec.md
 │   └── architecture.md
 ├── frontend/
+│   ├── public/
+│   │   ├── favicon.svg
+│   │   └── samples/                 # droppable .eml / .txt sandbox payloads
+│   ├── scripts/
+│   │   └── capture-workspace.mjs    # Playwright README screenshot helper
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── Analytics/
+│   │   │   ├── Analytics/           # ThreatGauge, ThreatOrb, ResultsRail
 │   │   │   ├── Header/
 │   │   │   ├── Inspector/
-│   │   │   └── Reports/
+│   │   │   ├── Reports/
+│   │   │   ├── layout/              # AppShell, Workspace, Atmosphere
+│   │   │   ├── ui/                  # Button, Surface, Badge, Kbd
+│   │   │   └── feedback/
+│   │   ├── fixtures/
+│   │   │   └── samplePayloads.ts
 │   │   ├── hooks/
-│   │   │   ├── useAnalyticExport.ts
-│   │   │   └── usePhishAnalysis.ts
+│   │   ├── lib/
 │   │   ├── App.tsx
 │   │   └── main.tsx
 │   ├── package.json
 │   ├── Dockerfile
 │   └── .dockerignore
 ├── CONTRIBUTING.md
+├── dashboard.png
 ├── docker-compose.yml
 ├── .dockerignore
 └── README.md
@@ -292,9 +326,8 @@ PhishPhage/
 #### 1. Clone Repository
 
 ```bash
-git clone [https://github.com/KrishKamra/PhishPhage.git](https://github.com/KrishKamra/PhishPhage.git)
+git clone https://github.com/KrishKamra/PhishPhage.git
 cd PhishPhage
-
 ```
 
 #### 2. Start Backend (FastAPI)
@@ -327,7 +360,9 @@ npm run dev
 
 ```
 
-*Frontend workspace runs at `http://localhost:5173*`.
+*Frontend workspace runs at `http://localhost:5173`.*
+
+Load a built-in vector (**MFA reset**, **Payroll BEC**, **Sprint sync**, …) or drop a file from `frontend/public/samples/` onto the inspector, then press `Ctrl` / `⌘` + `Enter`.
 
 ---
 
@@ -370,6 +405,7 @@ All random seeds are pinned to `42` across NumPy, scikit-learn splitters, and tr
 * [x] Multi-arch Docker Hub build integration (`linux/amd64`, `linux/arm64`)
 * [x] Implement Explainable AI (XAI) rationale output generator
 * [x] High-resolution client-side vector PDF report exporter
+* [x] Production 2.5D SOC operator workspace (two-pane rail, sample vectors, lazy ThreatOrb)
 * [ ] **v1.2.0:** Add DKIM/SPF/DMARC raw email header parser
 * [ ] **v1.3.0:** Add enterprise Webhook notifications (Slack / Microsoft Teams)
 * [ ] **v2.0.0:** Implement Active Learning pipeline with automated model retraining
