@@ -8,6 +8,7 @@ import { ForensicBreakdown } from './ForensicBreakdown';
 import { ReportExporter } from '../Reports/ReportExporter';
 import { ModelFeedback } from '../feedback/ModelFeedback';
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
+import { analyzeModifierLabel } from '../../lib/site';
 
 interface ResultsRailProps {
   data: PredictResponse | null;
@@ -124,7 +125,7 @@ function EmptyState() {
         </li>
         <li className="flex gap-2">
           <span className="text-emerald-400">02</span>
-          Run forensic AI with ⌘ / Ctrl + Enter
+          Run forensic AI with {analyzeModifierLabel()} + Enter
         </li>
         <li className="flex gap-2">
           <span className="text-emerald-400">03</span>

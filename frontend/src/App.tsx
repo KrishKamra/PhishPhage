@@ -3,6 +3,8 @@ import { Header } from './components/Header/Header';
 import { EmailInspector, type EmailInspectorHandle } from './components/Inspector/EmailInspector';
 import { ResultsRail } from './components/Analytics/ResultsRail';
 import { AppShell } from './components/layout/AppShell';
+import { Footer } from './components/layout/Footer';
+import { StatusBanner } from './components/layout/StatusBanner';
 import { Workspace } from './components/layout/Workspace';
 import { useAnalyticExport } from './hooks/useAnalyticExport';
 import { useApiHealth } from './hooks/useApiHealth';
@@ -71,9 +73,9 @@ export function App() {
       <Header apiStatus={apiStatus} isOnline={isOnline} isPinging={isPinging} />
 
       {!isOnline && !isPinging && (
-        <div className="shrink-0 border-b border-rose-500/20 bg-rose-500/10 px-4 py-2 text-center font-mono text-[11px] text-rose-200">
+        <StatusBanner>
           Inference engine offline. Analysis is paused until the API reports a loaded model.
-        </div>
+        </StatusBanner>
       )}
 
       <Workspace
@@ -100,9 +102,7 @@ export function App() {
         }
       />
 
-      <footer className="mt-auto shrink-0 border-t border-slate-900/80 py-2.5 text-center font-mono text-[11px] text-slate-600">
-        PhishPhage v1.1.0 SOC Edition · Krish Kamra
-      </footer>
+      <Footer />
     </AppShell>
   );
 }

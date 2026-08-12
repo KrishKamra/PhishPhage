@@ -19,9 +19,11 @@ import { renderHighlightedText } from '../../utils/highlightRules';
 import { parseEmailHeaders } from '../../lib/parseEmail';
 import { FORENSIC_MIN_WORDS } from '../../lib/api';
 import { cn } from '../../lib/cn';
+import { analyzeShortcutLabel } from '../../lib/site';
 import { SAMPLE_PAYLOADS, type SamplePayload } from '../../fixtures/samplePayloads';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { IconButton } from '../ui/IconButton';
 import { Kbd } from '../ui/Kbd';
 import { Surface } from '../ui/Surface';
 
@@ -134,15 +136,9 @@ export const EmailInspector = forwardRef<EmailInspectorHandle, EmailInspectorPro
               {showHighlight ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
               <span>{showHighlight ? 'Highlight' : 'Plain'}</span>
             </button>
-            <button
-              type="button"
-              onClick={handleClear}
-              disabled={!text}
-              className="rounded-md p-1.5 text-slate-400 transition-all hover:bg-slate-800 hover:text-slate-200 disabled:opacity-30"
-              title="Clear payload"
-            >
-              <RotateCcw className="h-4 w-4" />
-            </button>
+            <IconButton label="Clear payload" onClick={handleClear} disabled={!text}>
+              <RotateCcw className="h-3.5 w-3.5" />
+            </IconButton>
           </div>
         </div>
 
@@ -248,10 +244,10 @@ export const EmailInspector = forwardRef<EmailInspectorHandle, EmailInspectorPro
                 title={sample.description}
                 onClick={() => handleSampleLoad(sample)}
                 className={cn(
-                  'rounded border px-2 py-0.5 transition-all',
+                  'rounded-md border px-2 py-0.5 transition-all',
                   sample.kind === 'phishing'
-                    ? 'border-rose-500/20 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20'
-                    : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20'
+                    ? 'border-rose-500/20 bg-rose-500/10 text-rose-300 hover:border-rose-500/40 hover:bg-rose-500/20'
+                    : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:border-emerald-500/40 hover:bg-emerald-500/20'
                 )}
               >
                 {sample.label}
@@ -292,9 +288,7 @@ export const EmailInspector = forwardRef<EmailInspectorHandle, EmailInspectorPro
                   <Sparkles className="h-4 w-4" />
                   Run
                   <Kbd className="border-emerald-900/40 bg-emerald-950/20 text-slate-900">
-                    {typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
-                      ? '⌘↵'
-                      : 'Ctrl+↵'}
+                    {analyzeShortcutLabel()}
                   </Kbd>
                 </>
               )}

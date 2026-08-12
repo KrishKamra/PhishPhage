@@ -53,7 +53,7 @@ export function ModelFeedback({ data, emailText }: ModelFeedbackProps) {
   };
 
   return (
-    <div className="border-t border-slate-800/70 pt-3">
+    <div className="border-t border-slate-800/70 pt-3 pb-0.5">
       <p className="mb-2 text-center font-mono text-[10px] uppercase tracking-wider text-slate-500">
         Model evaluation feedback
       </p>
