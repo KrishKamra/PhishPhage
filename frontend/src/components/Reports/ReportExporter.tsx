@@ -1,7 +1,8 @@
-import React from 'react';
-import { Download, Copy, Check, FileCode } from 'lucide-react';
+import { useState } from 'react';
+import { Check, Copy, Download, FileCode } from 'lucide-react';
 import { toast } from 'sonner';
 import type { PredictResponse } from '../../types';
+import { Button } from '../ui/Button';
 
 interface ReportExporterProps {
   data: PredictResponse;
@@ -10,13 +11,13 @@ interface ReportExporterProps {
   isExportingPdf: boolean;
 }
 
-export const ReportExporter: React.FC<ReportExporterProps> = ({
+export function ReportExporter({
   data,
   emailText,
   onExportPdf,
   isExportingPdf,
-}) => {
-  const [copied, setCopied] = React.useState<boolean>(false);
+}: ReportExporterProps) {
+  const [copied, setCopied] = useState(false);
 
   const generateMarkdownTicket = () => {
     return `### 🛡️ PhishPhage Incident Report
@@ -37,53 +38,42 @@ ${data.explanation}
 `;
   };
 
-  const handleCopyMarkdown = () => {
-    const md = generateMarkdownTicket();
-    navigator.clipboard.writeText(md);
-    setCopied(true);
-    toast.success('Report Copied to Clipboard', {
-      description: 'Ready to paste into Jira or ServiceNow ticketing system.',
-    });
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopyMarkdown = async () => {
+    try {
+      await navigator.clipboard.writeText(generateMarkdownTicket());
+      setCopied(true);
+      toast.success('Report copied', {
+        description: 'Ready to paste into Jira or ServiceNow.',
+      });
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Clipboard unavailable');
+    }
   };
 
   return (
-    <div className="w-full bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-md shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
-      
-      {/* Title */}
-      <div className="flex items-center space-x-2">
-        <FileCode className="w-4 h-4 text-cyan-400" />
-        <span className="text-xs font-mono font-semibold text-slate-300">
-          SOC Ticketing & Forensic Artifact Export:
+    <div className="flex flex-col gap-3 rounded-xl border border-slate-800/80 bg-slate-950/40 p-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center gap-2">
+        <FileCode className="h-4 w-4 text-cyan-400" />
+        <span className="font-mono text-[11px] font-semibold text-slate-300">
+          SOC ticket & artifact
         </span>
       </div>
-
-      {/* Action Buttons */}
-      <div className="flex items-center space-x-2 w-full sm:w-auto">
-        
-        {/* Copy Markdown Button */}
-        <button
-          type="button"
-          onClick={handleCopyMarkdown}
-          className="flex-1 sm:flex-initial flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-mono transition-all"
-        >
-          {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
-          <span>{copied ? 'Copied' : 'Copy Ticket MD'}</span>
-        </button>
-
-        {/* Export PDF Button */}
-        <button
-          type="button"
+      <div className="flex w-full items-center gap-2 sm:w-auto">
+        <Button variant="secondary" className="flex-1 sm:flex-initial" onClick={() => void handleCopyMarkdown()}>
+          {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5 text-slate-400" />}
+          {copied ? 'Copied' : 'Copy MD'}
+        </Button>
+        <Button
+          variant="info"
+          className="flex-1 sm:flex-initial"
           onClick={onExportPdf}
           disabled={isExportingPdf}
-          className="flex-1 sm:flex-initial flex items-center justify-center space-x-1.5 px-4 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-semibold text-xs font-mono shadow-[0_0_15px_rgba(6,182,212,0.25)] disabled:opacity-50 transition-all"
         >
-          <Download className="w-3.5 h-3.5" />
-          <span>{isExportingPdf ? 'Exporting...' : 'Export PDF Report'}</span>
-        </button>
-
+          <Download className="h-3.5 w-3.5" />
+          {isExportingPdf ? 'Exporting…' : 'Export PDF'}
+        </Button>
       </div>
-
     </div>
   );
-};
+}

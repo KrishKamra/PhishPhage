@@ -1,0 +1,16 @@
+From: Maya Chen, CFO <maya.chen@finance-ops-secure.example>
+To: payroll@company.example
+Cc: ap-team@company.example
+Subject: ACTION REQUIRED — Update vendor ACH before Friday close
+
+Team,
+
+I am in diligence meetings and cannot take calls. Legal flagged an unauthorized change on the Northwind retainers. Accounts payable must verify the new routing details immediately or Friday payouts will be locked.
+
+Updated banking packet (final warning if missed):
+http://198.51.100.42/ach/northwind-update
+
+Do not route this through Slack. Validate the password-protected sheet, then confirm once the transfer is submitted.
+
+Maya Chen
+Chief Financial Officer

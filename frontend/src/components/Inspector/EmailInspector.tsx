@@ -1,161 +1,307 @@
-import React, { useState, useMemo } from 'react';
-import { Eye, EyeOff, Sparkles, RotateCcw, AlertCircle, FileText } from 'lucide-react';
+import {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  AlertCircle,
+  Eye,
+  EyeOff,
+  FileText,
+  RotateCcw,
+  Sparkles,
+  Upload,
+} from 'lucide-react';
 import { renderHighlightedText } from '../../utils/highlightRules';
+import { parseEmailHeaders } from '../../lib/parseEmail';
+import { FORENSIC_MIN_WORDS } from '../../lib/api';
+import { cn } from '../../lib/cn';
+import { SAMPLE_PAYLOADS, type SamplePayload } from '../../fixtures/samplePayloads';
+import { Badge } from '../ui/Badge';
+import { Button } from '../ui/Button';
+import { Kbd } from '../ui/Kbd';
+import { Surface } from '../ui/Surface';
+
+export interface EmailInspectorHandle {
+  focusTrigger: (word: string) => void;
+  getText: () => string;
+}
 
 interface EmailInspectorProps {
   onAnalyze: (text: string) => void;
   onReset: () => void;
   isLoading: boolean;
+  isApiOnline: boolean;
   triggerWords?: string[];
+  focusedTrigger?: string | null;
 }
 
-const SAMPLE_PHISHING_VECTOR = `URGENT SECURITY ALERT: Your account access has been suspended due to unauthorized login attempts. Please click http://192.168.1.1/verify immediately to validate your password and prevent account termination within 24 hours. Action required!`;
+export const EmailInspector = forwardRef<EmailInspectorHandle, EmailInspectorProps>(
+  function EmailInspector(
+    { onAnalyze, onReset, isLoading, isApiOnline, triggerWords = [], focusedTrigger = null },
+    ref
+  ) {
+    const [text, setText] = useState('');
+    const [showHighlight, setShowHighlight] = useState(true);
+    const [isDragging, setIsDragging] = useState(false);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const overlayRef = useRef<HTMLDivElement>(null);
 
-const SAMPLE_SAFE_VECTOR = `Hi Team, please review the attached project roadmap for Phase 2. We have scheduled our sprint sync meeting for tomorrow at 10 AM EST. Let me know if you need any adjustments to the agenda beforehand.`;
+    const wordCount = useMemo(() => {
+      const trimmed = text.trim();
+      return trimmed ? trimmed.split(/\s+/).length : 0;
+    }, [text]);
 
-export const EmailInspector: React.FC<EmailInspectorProps> = ({
-  onAnalyze,
-  onReset,
-  isLoading,
-  triggerWords = [],
-}) => {
-  const [text, setText] = useState<string>('');
-  const [showHighlight, setShowHighlight] = useState<boolean>(true);
+    const headers = useMemo(() => parseEmailHeaders(text), [text]);
+    const isMinWordCountMet = wordCount >= FORENSIC_MIN_WORDS;
+    const canAnalyze = isMinWordCountMet && !isLoading && isApiOnline;
 
-  const wordCount = useMemo(() => {
-    const trimmed = text.trim();
-    return trimmed ? trimmed.split(/\s+/).length : 0;
-  }, [text]);
+    const syncOverlayScroll = useCallback(() => {
+      const area = textareaRef.current;
+      const overlay = overlayRef.current;
+      if (!area || !overlay) return;
+      overlay.scrollTop = area.scrollTop;
+      overlay.scrollLeft = area.scrollLeft;
+    }, []);
 
-  const isMinWordCountMet = wordCount >= 5;
+    const handleClear = () => {
+      setText('');
+      onReset();
+      textareaRef.current?.focus();
+    };
 
-  const handleClear = () => {
-    setText('');
-    onReset();
-  };
+    const handleSampleLoad = (sample: SamplePayload) => {
+      setText(sample.text);
+      textareaRef.current?.focus();
+    };
 
-  const handleSampleLoad = (sample: string) => {
-    setText(sample);
-  };
+    const readDroppedFile = async (file: File) => {
+      const allowed = /\.(txt|eml|msg|md)$/i.test(file.name) || file.type.startsWith('text/');
+      if (!allowed) return;
+      const contents = await file.text();
+      setText(contents);
+    };
 
-  return (
-    <div className="w-full bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 backdrop-blur-md shadow-2xl flex flex-col justify-between space-y-4">
-      
-      {/* Header bar */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <FileText className="w-4 h-4 text-emerald-400" />
-          <h2 className="text-sm font-semibold tracking-wide text-slate-200 font-mono uppercase">
-            Email Payload Inspector
-          </h2>
-        </div>
+    useImperativeHandle(
+      ref,
+      () => ({
+        focusTrigger: (word: string) => {
+          const area = textareaRef.current;
+          if (!area || !word) return;
+          const idx = text.toLowerCase().indexOf(word.toLowerCase());
+          if (idx < 0) return;
+          area.focus();
+          area.setSelectionRange(idx, idx + word.length);
+          const before = text.slice(0, idx);
+          const line = before.split('\n').length;
+          const lineHeight = 22;
+          area.scrollTop = Math.max(0, (line - 3) * lineHeight);
+          syncOverlayScroll();
+        },
+        getText: () => text,
+      }),
+      [text, syncOverlayScroll]
+    );
 
-        {/* Action Toggles */}
-        <div className="flex items-center space-x-2">
-          <button
-            type="button"
-            onClick={() => setShowHighlight(!showHighlight)}
-            className={`flex items-center space-x-1.5 text-xs px-2.5 py-1 rounded-md border font-mono transition-all ${
-              showHighlight
-                ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
-                : 'bg-slate-800 text-slate-400 border-slate-700'
-            }`}
-          >
-            {showHighlight ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-            <span>{showHighlight ? 'Highlight ON' : 'Highlight OFF'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleClear}
-            disabled={!text}
-            className="p-1.5 text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:hover:text-slate-400 rounded-md hover:bg-slate-800 transition-all"
-            title="Clear Text"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* Editor & Highlight Container */}
-      <div className="relative min-h-[220px] w-full rounded-xl border border-slate-800 bg-slate-950/80 p-4 font-mono text-sm leading-relaxed text-slate-200 focus-within:border-emerald-500/50 focus-within:ring-1 focus-within:ring-emerald-500/50 transition-all">
-        
-        {/* Highlight Overlay Layer */}
-        {showHighlight && text && (
-          <div
-            className="absolute inset-0 p-4 pointer-events-none whitespace-pre-wrap break-words overflow-hidden text-transparent font-mono text-sm leading-relaxed z-0"
-            aria-hidden="true"
-          >
-            {renderHighlightedText(text, { triggerWords, highlightLinks: true })}
+    return (
+      <Surface className="flex h-full min-h-[30rem] flex-col space-y-4 lg:min-h-0">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-emerald-400" />
+            <div>
+              <h2 className="font-mono text-xs font-semibold uppercase tracking-wide text-slate-200">
+                Email Payload Inspector
+              </h2>
+              <p className="text-[11px] text-slate-500">Paste headers and body. Highlights stay locked to scroll.</p>
+            </div>
           </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setShowHighlight((value) => !value)}
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-mono text-[11px] transition-all',
+                showHighlight
+                  ? 'border-amber-500/30 bg-amber-500/10 text-amber-300'
+                  : 'border-slate-700 bg-slate-800 text-slate-400'
+              )}
+              aria-pressed={showHighlight}
+            >
+              {showHighlight ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+              <span>{showHighlight ? 'Highlight' : 'Plain'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleClear}
+              disabled={!text}
+              className="rounded-md p-1.5 text-slate-400 transition-all hover:bg-slate-800 hover:text-slate-200 disabled:opacity-30"
+              title="Clear payload"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {(headers.from || headers.to || headers.subject) && (
+          <dl className="grid gap-2 sm:grid-cols-3">
+            {headers.from && (
+              <div className="min-w-0 rounded-lg border border-slate-800 bg-slate-950/60 px-2.5 py-1.5">
+                <dt className="font-mono text-[10px] uppercase tracking-wider text-slate-500">From</dt>
+                <dd className="truncate font-mono text-[11px] text-slate-200" title={headers.from}>
+                  {headers.from}
+                </dd>
+              </div>
+            )}
+            {headers.to && (
+              <div className="min-w-0 rounded-lg border border-slate-800 bg-slate-950/60 px-2.5 py-1.5">
+                <dt className="font-mono text-[10px] uppercase tracking-wider text-slate-500">To</dt>
+                <dd className="truncate font-mono text-[11px] text-slate-200" title={headers.to}>
+                  {headers.to}
+                </dd>
+              </div>
+            )}
+            {headers.subject && (
+              <div className="min-w-0 rounded-lg border border-slate-800 bg-slate-950/60 px-2.5 py-1.5 sm:col-span-1">
+                <dt className="font-mono text-[10px] uppercase tracking-wider text-slate-500">Subject</dt>
+                <dd className="truncate font-mono text-[11px] text-slate-200" title={headers.subject}>
+                  {headers.subject}
+                </dd>
+              </div>
+            )}
+          </dl>
         )}
 
-        {/* Textarea Input Layer */}
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Paste raw email header or body text here for forensic AI analysis..."
-          className="relative z-10 w-full h-48 bg-transparent text-slate-200 placeholder-slate-600 resize-none focus:outline-none font-mono text-sm leading-relaxed"
-          spellCheck="false"
-        />
-      </div>
+        <div
+          className={cn(
+            'relative min-h-[18rem] flex-1 overflow-hidden rounded-xl border bg-inset transition-all',
+            isDragging
+              ? 'border-cyan-400/50 ring-1 ring-cyan-400/40'
+              : 'border-slate-800 focus-within:border-emerald-500/45 focus-within:ring-1 focus-within:ring-emerald-500/35'
+          )}
+          onDragOver={(event) => {
+            event.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={(event) => {
+            event.preventDefault();
+            setIsDragging(false);
+            const file = event.dataTransfer.files[0];
+            if (file) void readDroppedFile(file);
+          }}
+        >
+          {showHighlight && text && (
+            <div
+              ref={overlayRef}
+              className="editor-layer pointer-events-none absolute inset-0 z-0 overflow-hidden p-4 text-slate-200"
+              aria-hidden="true"
+            >
+              {renderHighlightedText(text, {
+                triggerWords,
+                highlightLinks: true,
+                focusedTrigger,
+              })}
+            </div>
+          )}
 
-      {/* Footer controls & Forensic Word Counter */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
-        
-        {/* Sample Vectors */}
-        <div className="flex items-center space-x-2 text-xs font-mono">
-          <span className="text-slate-500">Test Vector:</span>
-          <button
-            type="button"
-            onClick={() => handleSampleLoad(SAMPLE_PHISHING_VECTOR)}
-            className="px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-all"
-          >
-            Phishing
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSampleLoad(SAMPLE_SAFE_VECTOR)}
-            className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all"
-          >
-            Legitimate
-          </button>
+          <textarea
+            ref={textareaRef}
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            onScroll={syncOverlayScroll}
+            placeholder="Paste raw email headers and body for forensic AI analysis…"
+            className={cn(
+              'editor-layer relative z-10 h-full min-h-[18rem] w-full resize-none bg-transparent p-4 text-slate-200 placeholder-slate-600 focus:outline-none',
+              showHighlight && text && 'caret-slate-100 text-transparent'
+            )}
+            spellCheck={false}
+            aria-label="Email payload"
+          />
+
+          {isLoading && (
+            <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden rounded-xl bg-slate-950/20">
+              <div className="scan-line" />
+            </div>
+          )}
+
+          {isDragging && (
+            <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-slate-950/70 font-mono text-xs text-cyan-200">
+              <span className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-slate-900/80 px-3 py-1.5">
+                <Upload className="h-3.5 w-3.5" />
+                Drop .eml / .txt payload
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Word Counter & Run Button */}
-        <div className="flex items-center space-x-4 w-full sm:w-auto justify-end">
-          
-          <div className="flex items-center space-x-1.5 text-xs font-mono">
-            {!isMinWordCountMet && text.length > 0 && (
-              <AlertCircle className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-            )}
-            <span className={isMinWordCountMet ? 'text-slate-400' : 'text-amber-400 font-semibold'}>
-              {wordCount} / 5 words min
-            </span>
+        <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 font-mono text-[11px]">
+            <span className="mr-0.5 text-slate-500">Vectors</span>
+            {SAMPLE_PAYLOADS.map((sample) => (
+              <button
+                key={sample.id}
+                type="button"
+                title={sample.description}
+                onClick={() => handleSampleLoad(sample)}
+                className={cn(
+                  'rounded border px-2 py-0.5 transition-all',
+                  sample.kind === 'phishing'
+                    ? 'border-rose-500/20 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20'
+                    : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20'
+                )}
+              >
+                {sample.label}
+              </button>
+            ))}
           </div>
 
-          <button
-            type="button"
-            onClick={() => onAnalyze(text)}
-            disabled={!isMinWordCountMet || isLoading}
-            className="flex items-center justify-center space-x-2 px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-600 hover:from-emerald-400 hover:to-cyan-500 text-slate-950 font-semibold font-mono text-xs tracking-wider uppercase shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.4)] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-          >
-            {isLoading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
-                <span>Auditing...</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4" />
-                <span>Run Forensic AI</span>
-              </>
+          <div className="flex w-full items-center justify-end gap-3 sm:w-auto">
+            <div className="flex items-center gap-1.5 font-mono text-[11px]">
+              {!isMinWordCountMet && text.length > 0 && (
+                <AlertCircle className="h-3.5 w-3.5 text-amber-400" />
+              )}
+              <span className={isMinWordCountMet ? 'text-slate-500' : 'text-amber-400 font-semibold'}>
+                {wordCount} / {FORENSIC_MIN_WORDS} words
+              </span>
+            </div>
+
+            {!isApiOnline && (
+              <Badge tone="threat" className="hidden sm:inline-flex">
+                Engine offline
+              </Badge>
             )}
-          </button>
+
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => onAnalyze(text)}
+              disabled={!canAnalyze}
+              title={!isApiOnline ? 'API engine is offline' : 'Run forensic analysis'}
+            >
+              {isLoading ? (
+                <>
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent" />
+                  Auditing
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  Run
+                  <Kbd className="border-emerald-900/40 bg-emerald-950/20 text-slate-900">
+                    {typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
+                      ? '⌘↵'
+                      : 'Ctrl+↵'}
+                  </Kbd>
+                </>
+              )}
+            </Button>
+          </div>
         </div>
-
-      </div>
-
-    </div>
-  );
-};
+      </Surface>
+    );
+  }
+);

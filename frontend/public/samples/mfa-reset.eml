@@ -1,0 +1,12 @@
+From: IT Security Helpdesk <security-update@corp-verify-auth.example>
+To: target.analyst@company.example
+Subject: URGENT: Mandatory MFA Reset Required Within 2 Hours
+Date: Tue, 11 Aug 2026 09:14:22 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+
+ATTENTION: Our Automated Threat System detected an unauthorized login attempt on your account from an unrecognized IP address (203.0.113.88).
+
+To prevent account suspension, you must immediately re-verify your multi-factor authentication credentials within 2 hours. Failure to update your details will result in automatic termination of active single sign-on (SSO) sessions and domain lockouts.
+
+Please click http://192.0.2.18/verify immediately to validate your password.

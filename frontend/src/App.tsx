@@ -1,168 +1,109 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquareWarning, CheckCircle, Shield, Cpu } from 'lucide-react';
-import { toast } from 'sonner';
-
-// Custom Hooks
-import { usePhishAnalysis } from './hooks/usePhishAnalysis';
-import { useLenisScroll } from './hooks/useLenisScroll';
-import { useAnalyticExport } from './hooks/useAnalyticExport';
-
-// Modular SOC Components
+import { useCallback, useRef, useState } from 'react';
 import { Header } from './components/Header/Header';
-import { EmailInspector } from './components/Inspector/EmailInspector';
-import { ThreatGauge } from './components/Analytics/ThreatGauge';
-import { ForensicBreakdown } from './components/Analytics/ForensicBreakdown';
-import { ReportExporter } from './components/Reports/ReportExporter';
+import { EmailInspector, type EmailInspectorHandle } from './components/Inspector/EmailInspector';
+import { ResultsRail } from './components/Analytics/ResultsRail';
+import { AppShell } from './components/layout/AppShell';
+import { Workspace } from './components/layout/Workspace';
+import { useAnalyticExport } from './hooks/useAnalyticExport';
+import { useApiHealth } from './hooks/useApiHealth';
+import { useHotkeys } from './hooks/useHotkeys';
+import { usePhishAnalysis } from './hooks/usePhishAnalysis';
+import type { AtmosphereVerdict } from './components/layout/Atmosphere';
 
 export function App() {
-  // Initialize Lenis Smooth Inertia Scroll
-  useLenisScroll();
-
-  // Custom hook for API interactions & state
   const { analyzeEmail, resetAnalysis, isLoading, data } = usePhishAnalysis();
   const { exportToPdf, isExporting } = useAnalyticExport();
+  const { apiStatus, isOnline, isPinging } = useApiHealth();
+  const inspectorRef = useRef<EmailInspectorHandle>(null);
 
-  // Local state
-  const [currentText, setCurrentText] = useState<string>('');
-  const [isReported, setIsReported] = useState<boolean>(false);
+  const [currentText, setCurrentText] = useState('');
+  const [focusedTrigger, setFocusedTrigger] = useState<string | null>(null);
 
-  const handleRunAnalysis = async (text: string) => {
-    setCurrentText(text);
-    setIsReported(false);
-    await analyzeEmail(text);
-  };
+  const handleRunAnalysis = useCallback(
+    async (text: string) => {
+      setCurrentText(text);
+      setFocusedTrigger(null);
+      await analyzeEmail(text);
+    },
+    [analyzeEmail]
+  );
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setCurrentText('');
-    setIsReported(false);
+    setFocusedTrigger(null);
     resetAnalysis();
-  };
+  }, [resetAnalysis]);
 
-  const handleReportFeedback = () => {
-    setIsReported(true);
-    toast.success('Feedback Logged', {
-      description: 'Sample flagged for active model retraining & human-in-the-loop review.',
-    });
-    console.log('FEEDBACK LOGGED:', {
-      content: currentText,
-      original_prediction: data?.prediction,
-    });
-  };
+  const handleFocusTrigger = useCallback((word: string) => {
+    setFocusedTrigger(word);
+    inspectorRef.current?.focusTrigger(word);
+  }, []);
+
+  const hotkeyHandler = useCallback(
+    (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+        if (!isOnline || isLoading) return;
+        event.preventDefault();
+        const text = inspectorRef.current?.getText() ?? '';
+        void handleRunAnalysis(text);
+        return;
+      }
+      if (event.key === 'Escape') {
+        const active = document.activeElement;
+        if (active instanceof HTMLElement) active.blur();
+      }
+    },
+    [handleRunAnalysis, isOnline, isLoading]
+  );
+
+  useHotkeys(hotkeyHandler);
+
+  const verdict: AtmosphereVerdict = isLoading
+    ? 'loading'
+    : data
+      ? data.is_phishing
+        ? 'threat'
+        : 'safe'
+      : 'idle';
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-emerald-500/30 selection:text-emerald-300">
-      
-      {/* 1. SOC Dashboard Navigation Header */}
-      <Header />
+    <AppShell verdict={verdict}>
+      <Header apiStatus={apiStatus} isOnline={isOnline} isPinging={isPinging} />
 
-      {/* 2. Main Forensic Workspace */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        
-        {/* Workspace Title */}
-        <div className="text-center space-y-2 max-w-2xl mx-auto">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono">
-            <Cpu className="w-3.5 h-3.5" />
-            <span>Explainable AI Engine (XAI)</span>
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight font-mono text-slate-100">
-            Threat Intelligence Operations
-          </h2>
-          <p className="text-slate-400 text-sm">
-            Auditing email communications for phishing triggers, social engineering tactics, and malicious hyper-links.
-          </p>
+      {!isOnline && !isPinging && (
+        <div className="shrink-0 border-b border-rose-500/20 bg-rose-500/10 px-4 py-2 text-center font-mono text-[11px] text-rose-200">
+          Inference engine offline. Analysis is paused until the API reports a loaded model.
         </div>
+      )}
 
-        {/* 3. Primary Input Inspector */}
-        <section className="w-full">
+      <Workspace
+        inspector={
           <EmailInspector
+            ref={inspectorRef}
             onAnalyze={handleRunAnalysis}
             onReset={handleReset}
             isLoading={isLoading}
+            isApiOnline={isOnline}
             triggerWords={data?.analysis.trigger_words_found}
+            focusedTrigger={focusedTrigger}
           />
-        </section>
+        }
+        rail={
+          <ResultsRail
+            data={data}
+            isLoading={isLoading}
+            emailText={currentText}
+            onExportPdf={() => exportToPdf(data, currentText)}
+            isExportingPdf={isExporting}
+            onFocusTrigger={handleFocusTrigger}
+          />
+        }
+      />
 
-        {/* 4. Forensic Results Dashboard */}
-        <AnimatePresence>
-          {data && (
-            <motion.div
-              id="forensic-report-export-target"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5, ease: 'easeOut' }}
-              className="space-y-6 pt-4"
-            >
-              
-              {/* Analytics Row: Gauge + Detailed Breakdown */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                
-                {/* Column 1: Risk Gauge */}
-                <div className="lg:col-span-1 w-full">
-                  <ThreatGauge
-                    confidence={data.confidence}
-                    isPhishing={data.is_phishing}
-                  />
-                </div>
-
-                {/* Column 2 & 3: Tabbed Forensic Analysis */}
-                <div className="lg:col-span-2 w-full">
-                  <ForensicBreakdown
-                    analysis={data.analysis}
-                    explanation={data.explanation}
-                    isPhishing={data.is_phishing}
-                  />
-                </div>
-
-              </div>
-
-              {/* 5. Export Controls (PDF & Markdown Copy) */}
-              <ReportExporter
-                data={data}
-                emailText={currentText}
-                onExportPdf={() => exportToPdf(data, currentText)}
-                isExportingPdf={isExporting}
-              />
-
-              {/* 6. Human-In-The-Loop Active Retraining Feedback */}
-              <div className="pt-4 border-t border-slate-800/60 flex flex-col items-center space-y-3">
-                <span className="text-xs font-mono text-slate-500">
-                  Model Evaluation Feedback Loop
-                </span>
-
-                {isReported ? (
-                  <div className="flex items-center space-x-2 text-xs font-mono text-emerald-400 bg-emerald-500/10 px-4 py-2 rounded-full border border-emerald-500/20">
-                    <CheckCircle className="w-4 h-4" />
-                    <span>Feedback queued for next active learning pipeline run</span>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleReportFeedback}
-                    className="flex items-center space-x-2 text-xs font-mono text-slate-400 hover:text-slate-200 bg-slate-900/80 border border-slate-800 hover:bg-slate-800 px-4 py-2 rounded-full transition-all"
-                  >
-                    <MessageSquareWarning className="w-4 h-4 text-amber-400" />
-                    <span>Report Incorrect Analysis (Flag False Positive)</span>
-                  </button>
-                )}
-              </div>
-
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950 py-6 text-center font-mono text-xs text-slate-600">
-        <div className="flex items-center justify-center space-x-2">
-          <Shield className="w-3.5 h-3.5 text-slate-500" />
-          <span>PhishPhage v1.1.0 SOC Edition • Krish Kamra</span>
-        </div>
+      <footer className="mt-auto shrink-0 border-t border-slate-900/80 py-2.5 text-center font-mono text-[11px] text-slate-600">
+        PhishPhage v1.1.0 SOC Edition · Krish Kamra
       </footer>
-
-    </div>
+    </AppShell>
   );
 }
 

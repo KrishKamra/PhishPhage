@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
+import { API_BASE_URL, FORENSIC_MIN_WORDS } from '../lib/api';
 import type { PredictResponse, EmailRequest } from '../types';
 
 interface UsePhishAnalysisReturn {
@@ -10,12 +11,9 @@ interface UsePhishAnalysisReturn {
   data: PredictResponse | null;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
-const FORENSIC_MIN_WORDS = 5;
-
 export const usePhishAnalysis = (): UsePhishAnalysisReturn => {
   const [data, setData] = useState<PredictResponse | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const resetAnalysis = useCallback(() => {
@@ -28,7 +26,6 @@ export const usePhishAnalysis = (): UsePhishAnalysisReturn => {
     const trimmedText = text.trim();
     const wordCount = trimmedText ? trimmedText.split(/\s+/).length : 0;
 
-    // Forensic minimum length check
     if (wordCount < FORENSIC_MIN_WORDS) {
       const msg = `Context too short. Minimum ${FORENSIC_MIN_WORDS} words required for forensic accuracy.`;
       toast.warning('Insufficient Context', { description: msg });
@@ -53,7 +50,7 @@ export const usePhishAnalysis = (): UsePhishAnalysisReturn => {
 
       if (!response.ok) {
         if (response.status === 503) {
-          throw new Error('ML Model engine is currently offline or loading.');
+          throw new Error('ML model engine is currently offline or loading.');
         }
         const errDetail = await response.json().catch(() => ({ detail: 'API Error' }));
         throw new Error(errDetail.detail || `Server returned error ${response.status}`);
@@ -62,7 +59,6 @@ export const usePhishAnalysis = (): UsePhishAnalysisReturn => {
       const result: PredictResponse = await response.json();
       setData(result);
 
-      // Toast notifications based on verdict
       if (result.is_phishing) {
         toast.error('Threat Detected', {
           description: `Confidence: ${result.confidence} | Urgency: ${result.analysis.urgency_level}`,
